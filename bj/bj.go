@@ -18,6 +18,8 @@ const (
 	MaxBet          = 1000.0
 	CardsPerDeck    = 52
 	MaxPlayerHands  = 7
+	MinNumDecks     = 1
+	MaxNumDecks     = 8
 
 	// h.count
 	HardCount = false
@@ -69,7 +71,7 @@ func (BJ *Game) saveGame() {
 	}
 }
 
-func loadGame() (BJ *Game, err error) {
+func LoadGame() (BJ *Game, err error) {
 	bytes, err := ioutil.ReadFile(SavedGameFile)
 	if err == nil {
 		sg := &SavedGame{}
@@ -99,7 +101,7 @@ type Game struct {
 }
 
 func New() {
-	BJ, err := loadGame()
+	BJ, err := LoadGame()
 	fmt.Println("BJ: ", BJ)
 	fmt.Println("err: ", err)
 
@@ -116,69 +118,69 @@ func (BJ *Game) String() string {
 	return fmt.Sprintf("NumberOfDecks: %d Money: %.2f CurrentBet: %.2f", BJ.NumberOfDecks, BJ.Money, BJ.CurrentBet)
 }
 
-func (BJ *Game) moreHandsToPlay() bool {
+func (BJ *Game) MoreHandsToPlay() bool {
 	return BJ.CurrentPlayerHand < (len(BJ.PlayerHands) - 1)
 }
 
-func (BJ *Game) playMoreHands() {
+func (BJ *Game) PlayMoreHands() {
 	BJ.CurrentPlayerHand++
 	h := &BJ.PlayerHands[BJ.CurrentPlayerHand]
-	h.dealCard()
-	if h.isDone() {
-		h.process()
+	h.DealCard()
+	if h.IsDone() {
+		h.Process()
 		return
 	}
-	BJ.drawHands()
+	BJ.DrawHands()
 	h.drawPlayerHandOptions()
 }
 
-func (BJ *Game) needToPlayDealerHand() bool {
+func (BJ *Game) NeedToPlayDealerHand() bool {
 	for _, h := range BJ.PlayerHands {
-		if !(h.isBusted() || h.isBlackjack()) {
+		if !(h.IsBusted() || h.IsBlackjack()) {
 			return true
 		}
 	}
 	return false
 }
 
-func (BJ *Game) playDealerHand() {
+func (BJ *Game) PlayDealerHand() {
 
-	if BJ.DealerHand.isBlackjack() {
+	if BJ.DealerHand.IsBlackjack() {
 		BJ.DealerHand.HideDownCard = false
 	}
-	if !BJ.needToPlayDealerHand() {
+	if !BJ.NeedToPlayDealerHand() {
 		BJ.DealerHand.Played = true
-		BJ.payHands()
+		BJ.PayHands()
 		return
 	}
 
 	// unhide so the count is correct
 	BJ.DealerHand.HideDownCard = false
 
-	softCount := BJ.DealerHand.getValue(SoftCount)
-	hardCount := BJ.DealerHand.getValue(HardCount)
+	softCount := BJ.DealerHand.GetValue(SoftCount)
+	hardCount := BJ.DealerHand.GetValue(HardCount)
 	for softCount < 18 && hardCount < 17 {
-		BJ.DealerHand.dealCard()
-		softCount = BJ.DealerHand.getValue(SoftCount)
-		hardCount = BJ.DealerHand.getValue(HardCount)
+		BJ.DealerHand.DealCard()
+		softCount = BJ.DealerHand.GetValue(SoftCount)
+		hardCount = BJ.DealerHand.GetValue(HardCount)
 	}
 	BJ.DealerHand.Played = true
-	BJ.payHands()
+	BJ.PayHands()
 }
 
-func (BJ *Game) payHands() {
+func (BJ *Game) PayHands() {
 	BJ.CurrentPlayerHand = -1
-	dhv := BJ.DealerHand.getValue(SoftCount)
-	dhb := BJ.DealerHand.isBusted()
+	dhv := BJ.DealerHand.GetValue(SoftCount)
+	dhb := BJ.DealerHand.IsBusted()
 	for hand := 0; hand < len(BJ.PlayerHands); hand++ {
 		h := &BJ.PlayerHands[hand]
 		if h.Payed {
 			continue
 		}
 		h.Payed = true
-		phv := h.getValue(SoftCount)
+		phv := h.GetValue(SoftCount)
 		if dhb || phv > dhv {
-			if h.isBlackjack() {
+			if h.IsBlackjack() {
 				h.Bet *= 1.5
 				BJ.Money += h.Bet
 			} else {
@@ -195,10 +197,14 @@ func (BJ *Game) payHands() {
 	BJ.saveGame()
 }
 
-func (BJ *Game) drawHands() {
-	c := exec.Command("clear")
+func (BJ *Game) Clear() {
+	c := exec.Command("Clear")
 	c.Stdout = os.Stdout
 	c.Run()
+}
+
+func (BJ *Game) DrawHands() {
+	BJ.Clear()
 
 	// dealer
 	fmt.Println("\n Dealer:")
@@ -211,13 +217,13 @@ func (BJ *Game) drawHands() {
 			fmt.Printf("%s ", CardFaces[c.Value-1][c.SuitValue])
 		}
 	}
-	fmt.Printf(" ⇒ %2d", BJ.DealerHand.getValue(SoftCount))
+	fmt.Printf(" ⇒ %2d", BJ.DealerHand.GetValue(SoftCount))
 
 	if !BJ.DealerHand.HideDownCard {
 		fmt.Printf("  ")
-		if BJ.DealerHand.isBusted() {
+		if BJ.DealerHand.IsBusted() {
 			fmt.Printf("Busted!")
-		} else if BJ.DealerHand.isBlackjack() {
+		} else if BJ.DealerHand.IsBlackjack() {
 			fmt.Printf("Blackjack!")
 		}
 	}
@@ -232,7 +238,7 @@ func (BJ *Game) drawHands() {
 			c := h.Cards[card]
 			fmt.Printf("%s ", CardFaces[c.Value-1][c.SuitValue])
 		}
-		fmt.Printf(" ⇒ %2d  ", h.getValue(SoftCount))
+		fmt.Printf(" ⇒ %2d  ", h.GetValue(SoftCount))
 		if h.Status == Lost {
 			fmt.Printf("-")
 		} else if h.Status == Won {
@@ -244,13 +250,13 @@ func (BJ *Game) drawHands() {
 		}
 		fmt.Printf("  ")
 		if h.Status == Lost {
-			if h.isBusted() {
+			if h.IsBusted() {
 				fmt.Printf("Busted!")
 			} else {
 				fmt.Printf("Lose!")
 			}
 		} else if h.Status == Won {
-			if h.isBlackjack() {
+			if h.IsBlackjack() {
 				fmt.Printf("Blackjack!")
 			} else {
 				fmt.Printf("Win!")
@@ -270,39 +276,39 @@ func (BJ *Game) insureHand() {
 	hx.Payed = true
 	hx.Status = Lost
 	BJ.Money -= hx.Bet
-	BJ.drawHands()
-	BJ.drawPlayerBetOptions()
+	BJ.DrawHands()
+	BJ.DrawPlayerBetOptions()
 }
 
 func (BJ *Game) noInsurance() {
-	if BJ.DealerHand.isBlackjack() {
+	if BJ.DealerHand.IsBlackjack() {
 		BJ.DealerHand.HideDownCard = false
 		BJ.DealerHand.Played = true
-		BJ.payHands()
-		BJ.drawHands()
-		BJ.drawPlayerBetOptions()
+		BJ.PayHands()
+		BJ.DrawHands()
+		BJ.DrawPlayerBetOptions()
 		return
 	}
 
 	h := &BJ.PlayerHands[BJ.CurrentPlayerHand]
-	if h.isDone() {
-		BJ.playDealerHand()
-		BJ.drawHands()
-		BJ.drawPlayerBetOptions()
+	if h.IsDone() {
+		BJ.PlayDealerHand()
+		BJ.DrawHands()
+		BJ.DrawPlayerBetOptions()
 		return
 	}
 
-	BJ.drawHands()
+	BJ.DrawHands()
 	h.drawPlayerHandOptions()
 }
 
-func (BJ *Game) askPlayerInsurance() {
+func (BJ *Game) AskPlayerInsurance() {
 	s := " Insurance, Y/N ?"
 	fmt.Println(s)
 
 	br := false
 	for {
-		b := getch()
+		b := GetChar()
 		switch strings.ToLower(string(b)) {
 		case "y":
 			br = true
@@ -317,8 +323,8 @@ func (BJ *Game) askPlayerInsurance() {
 	}
 }
 
-func (BJ *Game) getNewBet() {
-	BJ.drawHands()
+func (BJ *Game) GetNewBet() {
+	BJ.DrawHands()
 
 	fmt.Printf("  Current Bet: $%.2f\n  Enter new Bet: ", BJ.CurrentBet)
 	reader := bufio.NewReader(os.Stdin)
@@ -334,20 +340,23 @@ func (BJ *Game) getNewBet() {
 	BJ.DealNewHand()
 }
 
-func (BJ *Game) drawPlayerBetOptions() {
-	s := " (D) Deal Hand  (B) Change Bet  (Q) Quit"
+func (BJ *Game) DrawPlayerBetOptions() {
+	s := " (D) Deal Hand  (B) Change Bet  (O) Options  (Q) Quit"
 	fmt.Println(s)
 
 	br := false
 	for {
-		b := getch()
+		b := GetChar()
 		switch strings.ToLower(string(b)) {
 		case "d":
 			br = true
 			BJ.DealNewHand()
 		case "b":
 			br = true
-			BJ.getNewBet()
+			BJ.GetNewBet()
+		case "o":
+			br = true
+			BJ.GameOptions()
 		case "q":
 			br = true
 			os.Exit(0)
@@ -358,41 +367,138 @@ func (BJ *Game) drawPlayerBetOptions() {
 	}
 }
 
+func (BJ *Game) GameOptions() {
+	BJ.Clear()
+	BJ.DrawHands()
+
+	s := " (N) Number of Decks  (T) Deck Type  (B) Back"
+	fmt.Println(s)
+
+	br := false
+	for {
+		b := GetChar()
+		switch strings.ToLower(string(b)) {
+		case "n":
+			br = true
+			BJ.GetNumDecks()
+		case "t":
+			br = true
+			BJ.GetNewDeckType()
+		case "b":
+			br = true
+			BJ.Clear()
+			BJ.DrawHands()
+			BJ.DrawPlayerBetOptions()
+		default:
+			BJ.Clear()
+			BJ.DrawHands()
+			BJ.GameOptions()
+		}
+
+		if br {
+			break
+		}
+	}
+}
+
+func (BJ *Game) GetNumDecks() {
+	BJ.Clear()
+	BJ.DrawHands()
+
+	fmt.Printf("  Number Of Decks: %d  Enter New Number Of Decks (1-8): ", BJ.NumberOfDecks)
+	reader := bufio.NewReader(os.Stdin)
+	text, _ := reader.ReadString('\n')
+	NumOfDecks, _ := strconv.ParseInt(strings.TrimSpace(text), 10, 32)
+
+	if NumOfDecks < MinNumDecks {
+		NumOfDecks = MinNumDecks
+	} else if NumOfDecks > MaxNumDecks {
+		NumOfDecks = MaxNumDecks
+	}
+	BJ.NumberOfDecks = int(NumOfDecks)
+	BJ.GameOptions()
+}
+
+func (BJ *Game) GetNewDeckType() {
+
+	BJ.Clear()
+	BJ.DrawHands()
+
+	s := " (1) Regular  (2) Aces  (3) Jacks  (4) Aces & Jacks  (5) Sevens  (6) Eights"
+	fmt.Println(s)
+
+	br := false
+	for {
+		b := GetChar()
+		switch strings.ToLower(string(b)) {
+		case "1":
+			br = true
+			BJ.NewRegular()
+		case "2":
+			br = true
+			BJ.NewAces()
+		case "3":
+			br = true
+			BJ.NewJacks()
+		case "4":
+			br = true
+			BJ.NewAcesJacks()
+		case "5":
+			br = true
+			BJ.NewSevens()
+		case "6":
+			br = true
+			BJ.NewEights()
+		default:
+			BJ.Clear()
+			BJ.DrawHands()
+			BJ.GetNewDeckType()
+		}
+
+		if br {
+			break
+		}
+	}
+
+	BJ.DrawHands()
+	BJ.DrawPlayerBetOptions()
+}
+
 func (BJ *Game) DealNewHand() {
-	if BJ.checkNeedToShuffle() {
-		BJ.shuffle()
+	if BJ.CheckNeedToShuffle() {
+		BJ.Shuffle()
 	}
 
 	BJ.CurrentPlayerHand = 0
 	BJ.DealerHand = Hand{Game: BJ, IsDealer: true, HideDownCard: true}
 	BJ.PlayerHands = []Hand{}
 	h := Hand{Game: BJ, Bet: BJ.CurrentBet, Status: Unknown}
-	h.dealCard()
-	BJ.DealerHand.dealCard()
-	h.dealCard()
-	BJ.DealerHand.dealCard()
+	h.DealCard()
+	BJ.DealerHand.DealCard()
+	h.DealCard()
+	BJ.DealerHand.DealCard()
 	BJ.PlayerHands = append(BJ.PlayerHands, h)
 
-	if BJ.DealerHand.Cards[0].isAce() {
-		BJ.drawHands()
-		BJ.askPlayerInsurance()
+	if BJ.DealerHand.Cards[0].IsAce() {
+		BJ.DrawHands()
+		BJ.AskPlayerInsurance()
 		return
 	}
 
-	if BJ.DealerHand.isDone() {
+	if BJ.DealerHand.IsDone() {
 		BJ.DealerHand.HideDownCard = false
 	}
-	if BJ.PlayerHands[0].isDone() {
+	if BJ.PlayerHands[0].IsDone() {
 		BJ.DealerHand.HideDownCard = false
 	}
 	if BJ.DealerHand.Played || BJ.PlayerHands[0].Played {
-		BJ.payHands()
-		BJ.drawHands()
-		BJ.drawPlayerBetOptions()
+		BJ.PayHands()
+		BJ.DrawHands()
+		BJ.DrawPlayerBetOptions()
 		return
 	}
 
-	BJ.drawHands()
+	BJ.DrawHands()
 	BJ.PlayerHands[0].drawPlayerHandOptions()
 
 	BJ.saveGame()

@@ -1,7 +1,6 @@
 package bj
 
 import (
-	"fmt"
 	"math/rand"
 	"time"
 )
@@ -15,18 +14,18 @@ type Shoe struct {
 func NewShoe(BJ *Game) Shoe {
 	rand.Seed(time.Now().UTC().UnixNano())
 	s := Shoe{Game: BJ}
-	s.newRegular()
-	s.shuffle()
+	s.NewRegular()
+	s.Shuffle()
 	return s
 }
 
-func (s *Shoe) getNextCard() Card {
+func (s *Shoe) GetNextCard() Card {
 	c := s.Cards[s.Top]
 	s.Top++
 	return c
 }
 
-func (s *Shoe) newRegular() {
+func (s *Shoe) NewRegular() {
 	s.Cards = []Card{}
 	for deck := 0; deck < s.NumberOfDecks; deck++ {
 		for Suit := 0; Suit < 4; Suit++ {
@@ -38,12 +37,12 @@ func (s *Shoe) newRegular() {
 	}
 }
 
-func (s *Shoe) checkNeedToShuffle() bool {
+func (s *Shoe) CheckNeedToShuffle() bool {
 	used := int(float64(s.Top) / float64(len(s.Cards)) * 100.0)
 	return used > ShuffleSpecs[s.NumberOfDecks - 1]
 }
 
-func (s *Shoe) shuffle() {
+func (s *Shoe) Shuffle() {
 	s.Top = 0
 	totalCards := s.NumberOfDecks * CardsPerDeck
 	for t := 0; t < 7; t++ {
@@ -54,7 +53,7 @@ func (s *Shoe) shuffle() {
 	}
 }
 
-func (s *Shoe) newSevens() {
+func (s *Shoe) NewSevens() {
 	s.Cards = []Card{}
 	for deck := 0; deck < s.NumberOfDecks*5*13; deck++ {
 		for Suit := 0; Suit < 4; Suit++ {
@@ -64,7 +63,7 @@ func (s *Shoe) newSevens() {
 	}
 }
 
-func (s *Shoe) newEights() {
+func (s *Shoe) NewEights() {
 	s.Cards = []Card{}
 	for deck := 0; deck < s.NumberOfDecks*5*13; deck++ {
 		for Suit := 0; Suit < 4; Suit++ {
@@ -74,7 +73,7 @@ func (s *Shoe) newEights() {
 	}
 }
 
-func (s *Shoe) newAces() {
+func (s *Shoe) NewAces() {
 	s.Cards = []Card{}
 	for deck := 0; deck < s.NumberOfDecks*5*13; deck++ {
 		for Suit := 0; Suit < 4; Suit++ {
@@ -84,7 +83,7 @@ func (s *Shoe) newAces() {
 	}
 }
 
-func (s *Shoe) newJacks() {
+func (s *Shoe) NewJacks() {
 	s.Cards = []Card{}
 	for deck := 0; deck < s.NumberOfDecks*5*13; deck++ {
 		for Suit := 0; Suit < 4; Suit++ {
@@ -94,7 +93,7 @@ func (s *Shoe) newJacks() {
 	}
 }
 
-func (s *Shoe) newAcesJacks() {
+func (s *Shoe) NewAcesJacks() {
 	s.Cards = []Card{}
 	for deck := 0; deck < s.NumberOfDecks*4*13; deck++ {
 		for Suit := 0; Suit < 4; Suit++ {
@@ -103,13 +102,5 @@ func (s *Shoe) newAcesJacks() {
 			c2 := Card{Value: 11, Suit: Suits[Suit], SuitValue: Suit}
 			s.Cards = append(s.Cards, c2)
 		}
-	}
-}
-
-func (s Shoe) listCards() {
-	totalCards := s.NumberOfDecks * CardsPerDeck
-	for x := 0; x < totalCards; x++ {
-		c := s.Cards[x]
-		fmt.Printf("%d: %d of %s\n", x, c.Value, c.Suit)
 	}
 }

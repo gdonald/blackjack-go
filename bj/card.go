@@ -6,10 +6,10 @@ type Card struct {
 	SuitValue int
 }
 
-func (c *Card) isAce() bool {
+func (c *Card) IsAce() bool {
 	return c.Value == 1
 }
 
-func (c *Card) isTen() bool {
+func (c *Card) IsTen() bool {
 	return c.Value > 8
 }

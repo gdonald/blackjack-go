@@ -17,24 +17,24 @@ type Hand struct {
 	Cards        []Card
 }
 
-func (h *Hand) isBusted() bool {
-	return h.getValue(HardCount) > 21
+func (h *Hand) IsBusted() bool {
+	return h.GetValue(HardCount) > 21
 }
 
-func (h *Hand) isBlackjack() bool {
+func (h *Hand) IsBlackjack() bool {
 	if len(h.Cards) != 2 {
 		return false
 	}
-	if h.Cards[0].isAce() && h.Cards[1].isTen() {
+	if h.Cards[0].IsAce() && h.Cards[1].IsTen() {
 		return true
 	}
-	if h.Cards[1].isAce() && h.Cards[0].isTen() {
+	if h.Cards[1].IsAce() && h.Cards[0].IsTen() {
 		return true
 	}
 	return false
 }
 
-func (h *Hand) getValue(softCount bool) int {
+func (h *Hand) GetValue(softCount bool) int {
 
 	v := 0
 	total := 0
@@ -62,17 +62,17 @@ func (h *Hand) getValue(softCount bool) int {
 
 	// redo as hard count if soft counting and busted
 	if softCount && total > 21 {
-		return h.getValue(HardCount)
+		return h.GetValue(HardCount)
 	}
 
 	return total
 }
 
-func (h *Hand) isDone() bool {
-	if h.Stood || h.Played || h.isBlackjack() || h.isBusted() || 21 == h.getValue(SoftCount) || 21 == h.getValue(HardCount) {
+func (h *Hand) IsDone() bool {
+	if h.Stood || h.Played || h.IsBlackjack() || h.IsBusted() || 21 == h.GetValue(SoftCount) || 21 == h.GetValue(HardCount) {
 		h.Played = true
 		if !h.Payed {
-			if h.isBusted() {
+			if h.IsBusted() {
 				h.Payed = true
 				h.Status = Lost
 				h.Money -= h.Bet
@@ -83,42 +83,42 @@ func (h *Hand) isDone() bool {
 	return false
 }
 
-func (h *Hand) hit() {
-	h.dealCard()
-	if h.isDone() {
-		h.process()
+func (h *Hand) Hit() {
+	h.DealCard()
+	if h.IsDone() {
+		h.Process()
 	} else {
-		h.drawHands()
+		h.DrawHands()
 		hx := &h.PlayerHands[h.CurrentPlayerHand]
 		hx.drawPlayerHandOptions()
 		return
 	}
 }
 
-func (h *Hand) stand() {
+func (h *Hand) Stand() {
 	h.Stood = true
 	h.Played = true
-	if h.moreHandsToPlay() {
-		h.playMoreHands()
+	if h.MoreHandsToPlay() {
+		h.PlayMoreHands()
 		return
 	}
-	h.playDealerHand()
-	h.drawHands()
-	h.drawPlayerBetOptions()
+	h.PlayDealerHand()
+	h.DrawHands()
+	h.DrawPlayerBetOptions()
 }
 
 func (h *Hand) double() {
-	h.dealCard()
+	h.DealCard()
 	h.Played = true
 	h.Bet *= 2
-	if h.isDone() { // always true
-		h.process()
+	if h.IsDone() { // always true
+		h.Process()
 	}
 }
 
 func (h *Hand) split() {
-	if !h.canSplit() {
-		h.drawHands()
+	if !h.CanSplit() {
+		h.DrawHands()
 		h.drawPlayerHandOptions()
 		return
 	}
@@ -137,43 +137,43 @@ func (h *Hand) split() {
 	Cards := []Card{}
 	Cards = append(Cards, h.Cards[0])
 	h.PlayerHands[h.CurrentPlayerHand+1].Cards = Cards
-	h.Cards[0] = h.Shoe.getNextCard()
+	h.Cards[0] = h.Shoe.GetNextCard()
 
-	if h.isDone() {
-		h.process()
+	if h.IsDone() {
+		h.Process()
 	} else {
-		h.drawHands()
+		h.DrawHands()
 		hx := &h.PlayerHands[h.CurrentPlayerHand]
 		hx.drawPlayerHandOptions()
 		return
 	}
 }
 
-func (h *Hand) process() {
-	if h.moreHandsToPlay() {
-		h.playMoreHands()
+func (h *Hand) Process() {
+	if h.MoreHandsToPlay() {
+		h.PlayMoreHands()
 		return
 	}
-	h.playDealerHand()
-	h.drawHands()
-	h.drawPlayerBetOptions()
+	h.PlayDealerHand()
+	h.DrawHands()
+	h.DrawPlayerBetOptions()
 }
 
-func (h *Hand) canHit() bool {
-	if h.Played || h.Stood || 21 == h.getValue(HardCount) || h.isBlackjack() || h.isBusted() {
+func (h *Hand) CanHit() bool {
+	if h.Played || h.Stood || 21 == h.GetValue(HardCount) || h.IsBlackjack() || h.IsBusted() {
 		return false
 	}
 	return true
 }
 
-func (h *Hand) canStand() bool {
-	if h.Stood || h.isBusted() || h.isBlackjack() {
+func (h *Hand) CanStand() bool {
+	if h.Stood || h.IsBusted() || h.IsBlackjack() {
 		return false
 	}
 	return true
 }
 
-func (h *Hand) canSplit() bool {
+func (h *Hand) CanSplit() bool {
 	if h.Stood || len(h.PlayerHands) >= MaxPlayerHands {
 		return false
 	}
@@ -183,43 +183,43 @@ func (h *Hand) canSplit() bool {
 	return false
 }
 
-func (h *Hand) canDouble() bool {
-	if h.Stood || len(h.Cards) != 2 || h.isBusted() || h.isBlackjack() {
+func (h *Hand) CanDouble() bool {
+	if h.Stood || len(h.Cards) != 2 || h.IsBusted() || h.IsBlackjack() {
 		return false
 	}
 	return true
 }
 
-func (h *Hand) dealCard() {
-	h.Cards = append(h.Cards, h.getNextCard())
+func (h *Hand) DealCard() {
+	h.Cards = append(h.Cards, h.GetNextCard())
 }
 
 func (h *Hand) drawPlayerHandOptions() {
 	s := " "
-	if h.canHit() {
+	if h.CanHit() {
 		s += "(H) Hit  "
 	}
-	if h.canStand() {
+	if h.CanStand() {
 		s += "(S) Stand  "
 	}
-	if h.canSplit() {
+	if h.CanSplit() {
 		s += "(P) Split  "
 	}
-	if h.canDouble() {
+	if h.CanDouble() {
 		s += "(D) Double  "
 	}
 	fmt.Println(s)
 
 	br := false
 	for {
-		b := getch()
+		b := GetChar()
 		switch strings.ToLower(string(b)) {
 		case "h":
 			br = true
-			h.hit()
+			h.Hit()
 		case "s":
 			br = true
-			h.stand()
+			h.Stand()
 		case "d":
 			br = true
 			h.double()
