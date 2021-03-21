@@ -10,4 +10,4 @@ Run:
 
 	blackjack
 
-![Blackjack](https://raw.githubusercontent.com/gdonald/blackjack-go/main/bj.png)
+![Blackjack](https://github.com/gdonald/blackjack-go/blob/main/bj.png)
