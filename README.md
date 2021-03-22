@@ -10,7 +10,7 @@ Run:
 
 ## Status
 
-[![Go](https://github.com/gdonald/blackjack-go/workflows/Ruby/badge.svg)](https://github.com/gdonald/blackjack-go/actions)
+[![Go](https://github.com/gdonald/blackjack-go/workflows/Go/badge.svg)](https://github.com/gdonald/blackjack-go/actions)
 
 ## License
 
