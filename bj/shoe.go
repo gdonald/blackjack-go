@@ -30,7 +30,7 @@ func (s *Shoe) NewRegular() {
 	for deck := 0; deck < s.NumberOfDecks; deck++ {
 		for Suit := 0; Suit < 4; Suit++ {
 			for Value := 1; Value < 14; Value++ {
-				c := Card{Value: Value, Suit: Suits[Suit], SuitValue: Suit}
+				c := Card{Value: Value, SuitValue: Suit}
 				s.Cards = append(s.Cards, c)
 			}
 		}
@@ -57,7 +57,7 @@ func (s *Shoe) NewSevens() {
 	s.Cards = []Card{}
 	for deck := 0; deck < s.NumberOfDecks*5*13; deck++ {
 		for Suit := 0; Suit < 4; Suit++ {
-			c := Card{Value: 7, Suit: Suits[Suit], SuitValue: Suit}
+			c := Card{Value: 7, SuitValue: Suit}
 			s.Cards = append(s.Cards, c)
 		}
 	}
@@ -67,7 +67,7 @@ func (s *Shoe) NewEights() {
 	s.Cards = []Card{}
 	for deck := 0; deck < s.NumberOfDecks*5*13; deck++ {
 		for Suit := 0; Suit < 4; Suit++ {
-			c := Card{Value: 8, Suit: Suits[Suit], SuitValue: Suit}
+			c := Card{Value: 8, SuitValue: Suit}
 			s.Cards = append(s.Cards, c)
 		}
 	}
@@ -77,7 +77,7 @@ func (s *Shoe) NewAces() {
 	s.Cards = []Card{}
 	for deck := 0; deck < s.NumberOfDecks*5*13; deck++ {
 		for Suit := 0; Suit < 4; Suit++ {
-			c := Card{Value: 1, Suit: Suits[Suit], SuitValue: Suit}
+			c := Card{Value: 1, SuitValue: Suit}
 			s.Cards = append(s.Cards, c)
 		}
 	}
@@ -87,7 +87,7 @@ func (s *Shoe) NewJacks() {
 	s.Cards = []Card{}
 	for deck := 0; deck < s.NumberOfDecks*5*13; deck++ {
 		for Suit := 0; Suit < 4; Suit++ {
-			c := Card{Value: 11, Suit: Suits[Suit], SuitValue: Suit}
+			c := Card{Value: 11, SuitValue: Suit}
 			s.Cards = append(s.Cards, c)
 		}
 	}
@@ -97,9 +97,9 @@ func (s *Shoe) NewAcesJacks() {
 	s.Cards = []Card{}
 	for deck := 0; deck < s.NumberOfDecks*4*13; deck++ {
 		for Suit := 0; Suit < 4; Suit++ {
-			c := Card{Value: 1, Suit: Suits[Suit], SuitValue: Suit}
+			c := Card{Value: 1, SuitValue: Suit}
 			s.Cards = append(s.Cards, c)
-			c2 := Card{Value: 11, Suit: Suits[Suit], SuitValue: Suit}
+			c2 := Card{Value: 11, SuitValue: Suit}
 			s.Cards = append(s.Cards, c2)
 		}
 	}

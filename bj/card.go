@@ -2,12 +2,11 @@ package bj
 
 type Card struct {
 	Value     int
-	Suit      string
 	SuitValue int
 }
 
 func (c *Card) IsAce() bool {
-	return c.Value == 1
+	return c.Value == 0
 }
 
 func (c *Card) IsTen() bool {
