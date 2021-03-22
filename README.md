@@ -8,4 +8,13 @@ Run:
 
 	blackjack
 
+## Status
+
+[![Go](https://github.com/gdonald/blackjack-go/workflows/Ruby/badge.svg)](https://github.com/gdonald/blackjack-go/actions)
+
+## License
+
+blackjack-go is released under the [MIT License](http://www.opensource.org/licenses/MIT)
+
 ![Blackjack](https://github.com/gdonald/blackjack-go/blob/main/bj.png)
+
