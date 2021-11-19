@@ -81,7 +81,7 @@ func LoadGame() (BJ *Game, err error) {
 			return BJ, nil
 		}
 	}
-	return nil, err
+	return BJ, err
 }
 
 type SavedGame struct {
@@ -198,7 +198,7 @@ func (BJ *Game) PayHands() {
 }
 
 func (BJ *Game) Clear() {
-	c := exec.Command("Clear")
+	c := exec.Command("clear")
 	c.Stdout = os.Stdout
 	c.Run()
 }
