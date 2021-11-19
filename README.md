@@ -6,7 +6,7 @@ Assuming you have a proper Go environment setup you can install using:
 
 Run:
 
-	blackjack
+	blackjack-go
 
 ## Status
 
