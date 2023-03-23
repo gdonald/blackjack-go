@@ -1,6 +1,6 @@
 module github.com/gdonald/blackjack-go
 
-go 1.16
+go 1.17
 
 require (
 	github.com/pkg/term v1.1.0
