@@ -11,7 +11,7 @@ type Hand struct {
 	HideDownCard bool
 	Stood        bool
 	Played       bool
-	Payed        bool
+	Paid        bool
 	Status       int
 	Bet          float64
 	Cards        []Card
@@ -71,9 +71,9 @@ func (h *Hand) GetValue(softCount bool) int {
 func (h *Hand) IsDone() bool {
 	if h.Stood || h.Played || h.IsBlackjack() || h.IsBusted() || 21 == h.GetValue(SoftCount) || 21 == h.GetValue(HardCount) {
 		h.Played = true
-		if !h.Payed {
+		if !h.Paid {
 			if h.IsBusted() {
-				h.Payed = true
+				h.Paid = true
 				h.Status = Lost
 				h.Money -= h.Bet
 			}

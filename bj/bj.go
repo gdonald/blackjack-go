@@ -174,10 +174,10 @@ func (BJ *Game) PayHands() {
 	dhb := BJ.DealerHand.IsBusted()
 	for hand := 0; hand < len(BJ.PlayerHands); hand++ {
 		h := &BJ.PlayerHands[hand]
-		if h.Payed {
+		if h.Paid {
 			continue
 		}
-		h.Payed = true
+		h.Paid = true
 		phv := h.GetValue(SoftCount)
 		if dhb || phv > dhv {
 			if h.IsBlackjack() {
@@ -273,7 +273,7 @@ func (BJ *Game) insureHand() {
 	hx := &BJ.PlayerHands[BJ.CurrentPlayerHand]
 	hx.Bet /= 2
 	hx.Played = true
-	hx.Payed = true
+	hx.Paid = true
 	hx.Status = Lost
 	BJ.Money -= hx.Bet
 	BJ.DrawHands()
