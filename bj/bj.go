@@ -13,28 +13,42 @@ import (
 )
 
 const (
-	SavedGameFile   = "bj.json"
-	MinBet          = 5.0
-	MaxBet          = 1000.0
-	CardsPerDeck    = 52
-	MaxPlayerHands  = 7
-	MinNumDecks     = 1
-	MaxNumDecks     = 8
+	SavedGameFile  = "bj.json"
+	MinBet         = 5.0
+	MaxBet         = 1000.0
+	CardsPerDeck   = 52
+	MaxPlayerHands = 7
+	MinNumDecks    = 1
+	MaxNumDecks    = 8
 
-	// h.count
 	HardCount = false
 	SoftCount = true
 
-	// h.Status
 	Unknown = -2
 	Lost    = -1
 	Push    = 0
 	Won     = 1
 )
 
-var Suits = [4]string{"Spades", "Hearts", "Diamonds", "Clubs"}
 var ShuffleSpecs = []int{80, 81, 82, 84, 86, 89, 92, 95}
+
 var CardFaces = [14][4]string{
+	{"2♠", "2♥", "2♣", "2♦"},
+	{"3♠", "3♥", "3♣", "3♦"},
+	{"4♠", "4♥", "4♣", "4♦"},
+	{"5♠", "5♥", "5♣", "5♦"},
+	{"6♠", "6♥", "6♣", "6♦"},
+	{"7♠", "7♥", "7♣", "7♦"},
+	{"8♠", "8♥", "8♣", "8♦"},
+	{"9♠", "9♥", "9♣", "9♦"},
+	{"T♠", "T♥", "T♣", "T♦"},
+	{"J♠", "J♥", "J♣", "J♦"},
+	{"Q♠", "Q♥", "Q♣", "Q♦"},
+	{"K♠", "K♥", "K♣", "K♦"},
+	{"??", "", "", ""},
+}
+
+var CardFaces2 = [14][4]string{
 	{"🂡", "🂱", "🃁", "🃑"},
 	{"🂢", "🂲", "🃂", "🃒"},
 	{"🂣", "🂳", "🃃", "🃓"},
@@ -58,7 +72,7 @@ func (BJ *Game) saveGame() {
 		os.Exit(1)
 	}
 	defer f.Close()
-	sg := &SavedGame{NumberOfDecks: BJ.NumberOfDecks, CurrentBet: BJ.CurrentBet, Money: BJ.Money}
+	sg := &SavedGame{NumberOfDecks: BJ.NumberOfDecks, FaceType: BJ.FaceType, CurrentBet: BJ.CurrentBet, Money: BJ.Money}
 	g, err := json.Marshal(sg)
 	if err != nil {
 		fmt.Printf("error saving game data: %v", err)
@@ -77,7 +91,7 @@ func LoadGame() (BJ *Game, err error) {
 		sg := &SavedGame{}
 		err := json.Unmarshal(bytes, sg)
 		if err == nil {
-			BJ = &Game{NumberOfDecks: sg.NumberOfDecks, Money: sg.Money, CurrentBet: sg.CurrentBet, CurrentPlayerHand: -1}
+			BJ = &Game{NumberOfDecks: sg.NumberOfDecks, FaceType: sg.FaceType, Money: sg.Money, CurrentBet: sg.CurrentBet, CurrentPlayerHand: -1}
 			return BJ, nil
 		}
 	}
@@ -86,6 +100,7 @@ func LoadGame() (BJ *Game, err error) {
 
 type SavedGame struct {
 	NumberOfDecks int
+	FaceType      int
 	CurrentBet    float64
 	Money         float64
 }
@@ -95,18 +110,19 @@ type Game struct {
 	DealerHand        Hand
 	PlayerHands       []Hand
 	NumberOfDecks     int
+	FaceType          int
 	CurrentPlayerHand int
 	CurrentBet        float64
 	Money             float64
 }
 
 func New() {
-	BJ, err := LoadGame()
-	fmt.Println("BJ: ", BJ)
-	fmt.Println("err: ", err)
+	BJ, _ := LoadGame()
+	// fmt.Println("BJ: ", BJ)
+	// fmt.Println("err: ", err)
 
 	if BJ == nil {
-		BJ = &Game{NumberOfDecks: 8, Money: 100, CurrentBet: 5.0, CurrentPlayerHand: -1}
+		BJ = &Game{NumberOfDecks: 8, FaceType: 2, Money: 100, CurrentBet: 5.0, CurrentPlayerHand: -1}
 	}
 
 	s := NewShoe(BJ)
@@ -115,7 +131,7 @@ func New() {
 }
 
 func (BJ *Game) String() string {
-	return fmt.Sprintf("NumberOfDecks: %d Money: %.2f CurrentBet: %.2f", BJ.NumberOfDecks, BJ.Money, BJ.CurrentBet)
+	return fmt.Sprintf("NumberOfDecks: %d FaceType: %d Money: %.2f CurrentBet: %.2f", BJ.NumberOfDecks, BJ.FaceType, BJ.Money, BJ.CurrentBet)
 }
 
 func (BJ *Game) MoreHandsToPlay() bool {
@@ -203,6 +219,14 @@ func (BJ *Game) Clear() {
 	c.Run()
 }
 
+func (BJ *Game) GetCardFace(value int, suit int) string {
+	if BJ.FaceType == 2 {
+		return CardFaces2[value][suit]
+	}
+
+	return CardFaces[value][suit]
+}
+
 func (BJ *Game) DrawHands() {
 	BJ.Clear()
 
@@ -211,10 +235,10 @@ func (BJ *Game) DrawHands() {
 	fmt.Printf(" ")
 	for card := 0; card < len(BJ.DealerHand.Cards); card++ {
 		if card == 1 && BJ.DealerHand.HideDownCard {
-			fmt.Printf("%s ", CardFaces[13][0])
+			fmt.Printf("%s ", BJ.GetCardFace(13, 0))
 		} else {
 			c := BJ.DealerHand.Cards[card]
-			fmt.Printf("%s ", CardFaces[c.Value-1][c.SuitValue])
+			fmt.Printf("%s ", BJ.GetCardFace(c.Value-1, c.SuitValue))
 		}
 	}
 	fmt.Printf(" ⇒ %2d", BJ.DealerHand.GetValue(SoftCount))
@@ -236,7 +260,7 @@ func (BJ *Game) DrawHands() {
 		fmt.Printf(" ")
 		for card := 0; card < len(h.Cards); card++ {
 			c := h.Cards[card]
-			fmt.Printf("%s ", CardFaces[c.Value-1][c.SuitValue])
+			fmt.Printf("%s ", BJ.GetCardFace(c.Value-1, c.SuitValue))
 		}
 		fmt.Printf(" ⇒ %2d  ", h.GetValue(SoftCount))
 		if h.Status == Lost {
@@ -371,7 +395,7 @@ func (BJ *Game) GameOptions() {
 	BJ.Clear()
 	BJ.DrawHands()
 
-	s := " (N) Number of Decks  (T) Deck Type  (B) Back"
+	s := " (N) Number of Decks  (T) Deck Type  (F) Face Type  (B) Back"
 	fmt.Println(s)
 
 	br := false
@@ -384,6 +408,9 @@ func (BJ *Game) GameOptions() {
 		case "t":
 			br = true
 			BJ.GetNewDeckType()
+		case "f":
+			br = true
+			BJ.GetNewFaceType()
 		case "b":
 			br = true
 			BJ.Clear()
@@ -419,8 +446,40 @@ func (BJ *Game) GetNumDecks() {
 	BJ.GameOptions()
 }
 
-func (BJ *Game) GetNewDeckType() {
+func (BJ *Game) GetNewFaceType() {
+	BJ.Clear()
+	BJ.DrawHands()
 
+	s := " (1) A♠  (2) 🂡"
+	fmt.Println(s)
+
+	br := false
+	for {
+		b := GetChar()
+		switch strings.ToLower(string(b)) {
+		case "1":
+			br = true
+			BJ.FaceType = 1
+		case "2":
+			br = true
+			BJ.FaceType = 2
+		default:
+			BJ.Clear()
+			BJ.DrawHands()
+			BJ.GetNewFaceType()
+		}
+
+		if br {
+			break
+		}
+	}
+
+	BJ.saveGame()
+	BJ.DrawHands()
+	BJ.DrawPlayerBetOptions()
+}
+
+func (BJ *Game) GetNewDeckType() {
 	BJ.Clear()
 	BJ.DrawHands()
 
