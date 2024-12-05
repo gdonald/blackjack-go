@@ -11,7 +11,7 @@ type Hand struct {
 	HideDownCard bool
 	Stood        bool
 	Played       bool
-	Paid        bool
+	Paid         bool
 	Status       int
 	Bet          float64
 	Cards        []Card
@@ -45,14 +45,12 @@ func (h *Hand) GetValue(softCount bool) int {
 			continue
 		}
 
-		// face Cards are 10
 		if h.Cards[x].Value > 9 {
 			v = 10
 		} else {
 			v = h.Cards[x].Value
 		}
 
-		// raise ace to 11 if possible
 		if softCount && v == 1 && total < 11 {
 			v = 11
 		}
@@ -60,7 +58,6 @@ func (h *Hand) GetValue(softCount bool) int {
 		total += v
 	}
 
-	// redo as hard count if soft counting and busted
 	if softCount && total > 21 {
 		return h.GetValue(HardCount)
 	}
@@ -123,17 +120,14 @@ func (h *Hand) split() {
 		return
 	}
 
-	// add new hand
 	h.PlayerHands = append(h.PlayerHands, Hand{Game: h.Game})
 
-	// move hands down
 	x := len(h.PlayerHands) - 1
 	for x > h.CurrentPlayerHand {
 		h.PlayerHands[x] = h.PlayerHands[x-1]
 		x--
 	}
 
-	// split
 	Cards := []Card{}
 	Cards = append(Cards, h.Cards[0])
 	h.PlayerHands[h.CurrentPlayerHand+1].Cards = Cards

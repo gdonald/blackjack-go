@@ -4,8 +4,6 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"log"
 	"os"
 	"os/exec"
 	"strconv"
@@ -86,7 +84,7 @@ func (BJ *Game) saveGame() {
 }
 
 func LoadGame() (BJ *Game, err error) {
-	bytes, err := ioutil.ReadFile(SavedGameFile)
+	bytes, err := os.ReadFile(SavedGameFile)
 	if err == nil {
 		sg := &SavedGame{}
 		err := json.Unmarshal(bytes, sg)
@@ -118,8 +116,6 @@ type Game struct {
 
 func New() {
 	BJ, _ := LoadGame()
-	// fmt.Println("BJ: ", BJ)
-	// fmt.Println("err: ", err)
 
 	if BJ == nil {
 		BJ = &Game{NumberOfDecks: 8, FaceType: 2, Money: 100, CurrentBet: 5.0, CurrentPlayerHand: -1}
@@ -170,7 +166,6 @@ func (BJ *Game) PlayDealerHand() {
 		return
 	}
 
-	// unhide so the count is correct
 	BJ.DealerHand.HideDownCard = false
 
 	softCount := BJ.DealerHand.GetValue(SoftCount)
@@ -230,7 +225,6 @@ func (BJ *Game) GetCardFace(value int, suit int) string {
 func (BJ *Game) DrawHands() {
 	BJ.Clear()
 
-	// dealer
 	fmt.Println("\n Dealer:")
 	fmt.Printf(" ")
 	for card := 0; card < len(BJ.DealerHand.Cards); card++ {
@@ -253,7 +247,6 @@ func (BJ *Game) DrawHands() {
 	}
 	fmt.Println()
 
-	// player
 	fmt.Printf("\n Player $%.2f:\n", BJ.Money)
 	for hand := 0; hand < len(BJ.PlayerHands); hand++ {
 		h := BJ.PlayerHands[hand]
@@ -561,28 +554,4 @@ func (BJ *Game) DealNewHand() {
 	BJ.PlayerHands[0].drawPlayerHandOptions()
 
 	BJ.saveGame()
-}
-
-func (BJ *Game) l(s ...interface{}) {
-	f, err := os.OpenFile("bj.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
-	if err != nil {
-		fmt.Printf("error opening log file: %v", err)
-		os.Exit(1)
-	}
-	defer f.Close()
-	log.SetOutput(f)
-	ss := ""
-	for _, p := range s {
-		switch p.(type) {
-		case bool:
-			ss += fmt.Sprintf("%t ", p.(bool))
-		case int:
-			ss += fmt.Sprintf("%d ", p.(int))
-		case float64:
-			ss += fmt.Sprintf("%.2f ", p.(float64))
-		case string:
-			ss += fmt.Sprintf("%s ", p.(string))
-		}
-	}
-	log.Println(ss)
 }
